@@ -20,17 +20,24 @@ repositories {
 }
 
 dependencies {
+    // Spring
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0-M1")
+    // Swagger
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
 
+    // Serialize/deserialize Json for Kotlin data classes
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    // Kotlin stdlib
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+    // Postgres
     runtimeOnly("org.postgresql:postgresql")
 
+    // Tests
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
