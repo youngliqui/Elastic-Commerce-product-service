@@ -32,6 +32,9 @@ dependencies {
     // Serialize/deserialize Json for Kotlin data classes
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    // RabbitMQ integration
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
+
     // Kotlin stdlib
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 

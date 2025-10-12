@@ -11,6 +11,10 @@ import java.util.UUID
 @Tag(name = "Product API", description = "API для управления товарами")
 interface ProductControllerDoc {
 
+    @Operation(summary = "Получить список всех товаров")
+    @ApiResponse(responseCode = "200", description = "Список товаров получен успешно")
+    fun getAllProducts(): List<ProductResponse>
+
     @Operation(summary = "Получить товар по ID")
     @ApiResponse(responseCode = "200", description = "Товар найден")
     @ApiResponse(responseCode = "400", description = "Товар не найден")

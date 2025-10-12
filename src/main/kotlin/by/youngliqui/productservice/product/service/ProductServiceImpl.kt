@@ -3,6 +3,9 @@ package by.youngliqui.productservice.product.service
 import by.youngliqui.productservice.product.api.dto.ProductCreateRequest
 import by.youngliqui.productservice.product.api.dto.ProductResponse
 import by.youngliqui.productservice.product.api.dto.ProductUpdateRequest
+import by.youngliqui.productservice.product.event.ProductCreatedEvent
+import by.youngliqui.productservice.product.event.ProductDeletedEvent
+import by.youngliqui.productservice.product.event.ProductUpdatedEvent
 import by.youngliqui.productservice.product.exception.ProductNotFoundException
 import by.youngliqui.productservice.product.mapper.toEntity
 import by.youngliqui.productservice.product.mapper.toResponse
@@ -14,7 +17,8 @@ import java.util.*
 
 @Service
 class ProductServiceImpl(
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val producerService: RabbitMQProducerService
 ) : ProductService {
 
     @Transactional(readOnly = true)
@@ -33,8 +37,11 @@ class ProductServiceImpl(
     override fun create(request: ProductCreateRequest): ProductResponse {
         val product = request.toEntity()
         val savedProduct = productRepository.save(product)
-        // TODO: Здесь будет отправка события в RabbitMQ
-        return savedProduct.toResponse()
+
+        val response = savedProduct.toResponse()
+        producerService.sendProductCreated(ProductCreatedEvent(response))
+
+        return response
     }
 
     @Transactional
@@ -51,8 +58,11 @@ class ProductServiceImpl(
         }
 
         val updatedProduct = productRepository.save(existingProduct)
-        // TODO: Здесь будет отправка события в RabbitMQ
-        return updatedProduct.toResponse()
+
+        val response = updatedProduct.toResponse()
+        producerService.sendProductUpdated(ProductUpdatedEvent(response))
+
+        return response
     }
 
     @Transactional
@@ -61,6 +71,7 @@ class ProductServiceImpl(
             throw ProductNotFoundException(id)
         }
         productRepository.deleteById(id)
-        // TODO: Здесь будет отправка события в RabbitMQ
+
+        producerService.sendProductDeleted(ProductDeletedEvent(id))
     }
 }

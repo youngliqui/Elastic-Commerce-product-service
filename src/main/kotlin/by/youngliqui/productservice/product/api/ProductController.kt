@@ -15,6 +15,11 @@ class ProductController(
     val productService: ProductService
 ) : ProductControllerDoc {
 
+    @GetMapping
+    override fun getAllProducts(): List<ProductResponse> {
+        return productService.findAll()
+    }
+
     @GetMapping("/{id}")
     override fun getProductById(@PathVariable id: UUID): ProductResponse {
         return productService.findById(id)
