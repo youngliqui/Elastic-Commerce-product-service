@@ -25,6 +25,30 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
 
+  elasticsearch:
+    image: elasticsearch:9.1.5
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: kibana:9.1.5
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+
+
 volumes:
   postgres-data:
   rabbitmq-data:
+  elastic-data:
