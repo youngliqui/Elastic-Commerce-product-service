@@ -26,7 +26,7 @@ services:
       - rabbitmq-data:/var/lib/rabbitmq
 
   elasticsearch:
-    image: elasticsearch:9.1.5
+    image: elasticsearch:8.11.1
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
@@ -38,7 +38,7 @@ services:
       - elastic-data:/usr/share/elasticsearch/data
 
   kibana:
-    image: kibana:9.1.5
+    image: kibana:8.11.1
     container_name: kibana
     ports:
       - "5601:5601"

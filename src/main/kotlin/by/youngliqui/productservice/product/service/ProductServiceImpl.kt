@@ -1,6 +1,8 @@
 package by.youngliqui.productservice.product.service
 
+import by.youngliqui.productservice.product.api.dto.DatabaseStatusResponse
 import by.youngliqui.productservice.product.api.dto.ProductCreateRequest
+import by.youngliqui.productservice.product.api.dto.ProductListResponse
 import by.youngliqui.productservice.product.api.dto.ProductResponse
 import by.youngliqui.productservice.product.api.dto.ProductUpdateRequest
 import by.youngliqui.productservice.product.event.ProductCreatedEvent
@@ -10,10 +12,10 @@ import by.youngliqui.productservice.product.exception.ProductNotFoundException
 import by.youngliqui.productservice.product.mapper.toEntity
 import by.youngliqui.productservice.product.mapper.toResponse
 import by.youngliqui.productservice.product.repository.ProductRepository
+import java.util.*
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @Service
 class ProductServiceImpl(
@@ -29,19 +31,56 @@ class ProductServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): List<ProductResponse> {
-        return productRepository.findAll().map { it.toResponse() }
+    override fun findAll(): ProductListResponse {
+        val products = productRepository.findAll().map { it.toResponse() }
+        return ProductListResponse(
+            totalCount = products.size,
+            items = products
+        )
+    }
+
+    @Transactional(readOnly = true)
+    override fun getDatabaseStatus(): DatabaseStatusResponse {
+        val totalCount = productRepository.count()
+        val brandsCount = productRepository.countDistinctBrands()
+        val categoriesCount = productRepository.countDistinctCategories()
+
+        val statsMap = productRepository.getCategoryStats()
+            .associate { it.getCategory() to it.getCount() }
+
+        return DatabaseStatusResponse(
+            totalProducts = totalCount,
+            totalBrands = brandsCount,
+            totalCategories = categoriesCount,
+            categoryStats = statsMap
+        )
     }
 
     @Transactional
     override fun create(request: ProductCreateRequest): ProductResponse {
         val product = request.toEntity()
         val savedProduct = productRepository.save(product)
-
         val response = savedProduct.toResponse()
-        producerService.sendProductCreated(ProductCreatedEvent(response))
 
+        producerService.sendProductCreated(ProductCreatedEvent(response))
         return response
+    }
+
+    @Transactional
+    override fun createBatch(requests: List<ProductCreateRequest>): ProductListResponse {
+        val entities = requests.map { it.toEntity() }
+        val savedEntities = productRepository.saveAll(entities)
+
+        val responses = savedEntities.map { product ->
+            val response = product.toResponse()
+            producerService.sendProductCreated(ProductCreatedEvent(response))
+            response
+        }
+
+        return ProductListResponse(
+            totalCount = responses.size,
+            items = responses
+        )
     }
 
     @Transactional

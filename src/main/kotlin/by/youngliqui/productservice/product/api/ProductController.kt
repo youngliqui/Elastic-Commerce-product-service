@@ -1,13 +1,22 @@
 package by.youngliqui.productservice.product.api
 
+import by.youngliqui.productservice.product.api.dto.DatabaseStatusResponse
 import by.youngliqui.productservice.product.api.dto.ProductCreateRequest
+import by.youngliqui.productservice.product.api.dto.ProductListResponse
 import by.youngliqui.productservice.product.api.dto.ProductResponse
 import by.youngliqui.productservice.product.api.dto.ProductUpdateRequest
 import by.youngliqui.productservice.product.service.ProductService
-import jakarta.validation.Valid
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
 import java.util.*
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -16,8 +25,13 @@ class ProductController(
 ) : ProductControllerDoc {
 
     @GetMapping
-    override fun getAllProducts(): List<ProductResponse> {
+    override fun getAllProducts(): ProductListResponse {
         return productService.findAll()
+    }
+
+    @GetMapping("/status")
+    override fun getDatabaseStatus(): DatabaseStatusResponse {
+        return productService.getDatabaseStatus()
     }
 
     @GetMapping("/{id}")
@@ -27,14 +41,20 @@ class ProductController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    override fun createProduct(@Valid @RequestBody request: ProductCreateRequest): ProductResponse {
+    override fun createProduct(@RequestBody request: ProductCreateRequest): ProductResponse {
         return productService.create(request)
+    }
+
+    @PostMapping("/batch")
+    @ResponseStatus(HttpStatus.CREATED)
+    override fun createProductsBatch(@RequestBody requests: List<ProductCreateRequest>): ProductListResponse {
+        return productService.createBatch(requests)
     }
 
     @PutMapping("/{id}")
     override fun updateProduct(
         @PathVariable id: UUID,
-        @Valid @RequestBody request: ProductUpdateRequest
+        @RequestBody request: ProductUpdateRequest
     ): ProductResponse {
         return productService.update(id, request)
     }
